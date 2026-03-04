@@ -254,7 +254,7 @@ def remove_student_extension(
     # Check if the delete path is set
     if delete_path is None or delete_path == "":
         raise ValueError("The delete path cannot be empty")
-    
+
     GS_EXTENSIONS_ENDPOINT = f"{gradescope_base_url}/courses/{course_id}/assignments/{assignment_id}/extensions"
 
     # Get auth token
@@ -275,8 +275,10 @@ def remove_student_extension(
         "Referer": GS_EXTENSIONS_ENDPOINT,
     }
     try:
-        response = session.post(gradescope_base_url + delete_path, data=multipart, headers=headers)
+        response = session.post(
+            gradescope_base_url + delete_path, data=multipart, headers=headers
+        )
     except Exception:
         raise ValueError("The delete path is invalid")
-    
+
     return response.status_code == 200
