@@ -18,6 +18,7 @@ from dataclasses import dataclass
 import dateutil.parser
 import requests
 from bs4 import BeautifulSoup
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
 
@@ -226,6 +227,56 @@ def update_student_extension(
 
 def remove_student_extension(
     session: requests.Session,
+    course_id: str,
+    assignment_id: str,
     delete_path: str,
+    gradescope_base_url: str = DEFAULT_GRADESCOPE_BASE_URL,
 ) -> bool:
-    raise NotImplementedError("Not implemented yet")
+    """Removes the extension for a student on an assignment.
+
+    If the user currently has an extension, this will remove their
+    current extension. If the user does not have an extension, this
+    will return a ValueError.
+
+    Args:
+        session (requests.Session): The session to use for the request
+        course_id (str): The ID of the course on Gradescope.
+        assignment_id (str): The ID of the assignment on Gradescope.
+        delete_path (str): The delete path for the extension
+
+    Returns:
+        bool: True if the extension was successfully deleted, False otherwise
+
+    Raises:
+        ValueError: If the delete_path is empty
+    """
+
+    # Check if the delete path is set
+    if delete_path is None or delete_path == "":
+        raise ValueError("The delete path cannot be empty")
+    
+    GS_EXTENSIONS_ENDPOINT = f"{gradescope_base_url}/courses/{course_id}/assignments/{assignment_id}/extensions"
+
+    # Get auth token
+    response = session.get(GS_EXTENSIONS_ENDPOINT)
+    soup = BeautifulSoup(response.text, "html.parser")
+    auth_token = soup.find("meta", {"name": "csrf-token"})["content"]
+
+    # Setup multipart form data
+    fields = [
+        ("authenticity_token", auth_token),
+        ("_method", "delete"),
+    ]
+
+    multipart = MultipartEncoder(fields=fields)
+
+    headers = {
+        "Content-Type": multipart.content_type,
+        "Referer": GS_EXTENSIONS_ENDPOINT,
+    }
+    try:
+        response = session.post(gradescope_base_url + delete_path, data=multipart, headers=headers)
+    except Exception:
+        raise ValueError("The delete path is invalid")
+    
+    return response.status_code == 200
