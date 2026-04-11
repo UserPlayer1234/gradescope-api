@@ -80,6 +80,7 @@ def test_logout_session():
     test_session = requests.Session()
     logout_session(test_session)
 
+
 def test_login_logout_session():
     """Tests logging in and logging out."""
     # login
