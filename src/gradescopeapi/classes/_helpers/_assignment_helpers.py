@@ -178,13 +178,12 @@ def get_submission_files(
     ASSIGNMENT_ENDPOINT = (
         f"{gradescope_base_url}/courses/{course_id}/assignments/{assignment_id}"
     )
-
+    aws_links = []
     file_info_link = f"{ASSIGNMENT_ENDPOINT}/submissions/{submission_id}.json?content=react&only_keys[]=text_files&only_keys[]=file_comments"
     file_info_resp = session.get(file_info_link)
     if file_info_resp.status_code == requests.codes.ok:
         file_info_json = json.loads(file_info_resp.text)
         if file_info_json.get("text_files"):
-            aws_links = []
             for file_data in file_info_json["text_files"]:
                 aws_links.append(file_data["file"]["url"])
         else:
