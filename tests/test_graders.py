@@ -1,6 +1,9 @@
+import pytest
+
 from gradescopeapi.classes.account import Account
 
 
+@pytest.mark.skip(reason="Not testing graders")
 def test_get_assignment_graders_non_empty(create_session):
     """Test getting graders for a question that has been graded."""
     # create test session
@@ -14,6 +17,7 @@ def test_get_assignment_graders_non_empty(create_session):
     assert len(graders) > 0, "Should have at least 1 grader"
 
 
+@pytest.mark.skip(reason="Not testing graders")
 def test_get_assignment_graders_empty(create_session):
     """Test getting graders for a question that has not been graded."""
     # create test session

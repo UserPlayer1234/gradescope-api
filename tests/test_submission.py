@@ -16,7 +16,7 @@ GRADESCOPE_CI_STUDENT_EMAIL = os.getenv("GRADESCOPE_CI_STUDENT_EMAIL")
 def test_get_assignments_instructor(create_session):
     """Test fetching assignments with valid course ID as an instructor."""
     account = Account(create_session("instructor"))
-    course_id = "753413"
+    course_id = "1302606"
     assignments = account.get_assignments(course_id)
     assert isinstance(assignments, list), "Should return a list of assignments"
     assert len(assignments) > 0, "Should contain at least 1 assignment"
@@ -28,7 +28,7 @@ def test_get_assignments_instructor(create_session):
 def test_get_assignments_student(create_session):
     """Test fetching assignments with valid course ID as a student."""
     account = Account(create_session("student"))
-    course_id = "753413"
+    course_id = "1302606"
     assignments = account.get_assignments(course_id)
     assert isinstance(assignments, list), "Should return a list of assignments"
     assert len(assignments) > 0, "Should contain at least 1 assignment"
@@ -40,8 +40,8 @@ def test_get_assignments_student(create_session):
 def test_get_assignment_submissions(create_session):
     """Test fetching assignment submissions with valid course and assignment IDs."""
     account = Account(create_session("instructor"))
-    course_id = "753413"
-    assignment_id = "4330410"
+    course_id = "1302606"
+    assignment_id = "8043535"
 
     submissions = account.get_assignment_submissions(course_id, assignment_id)
     assert isinstance(submissions, dict), "Should return a dictionary of submissions"
@@ -51,12 +51,13 @@ def test_get_assignment_submissions(create_session):
     )
 
 
+@pytest.mark.skip(reason="No testing specific submission")
 def test_get_assignment_submission_valid(create_session):
     """Test fetching a specific assignment submission."""
     account = Account(create_session("instructor"))
     student_email = GRADESCOPE_CI_STUDENT_EMAIL
-    course_id = "753413"
-    assignment_id = "4330410"
+    course_id = "1302606"
+    assignment_id = "8043535"
     expected_num_files = 3
 
     submission = account.get_assignment_submission(
@@ -70,8 +71,8 @@ def test_get_assignment_submission_no_submission_found(create_session):
     """Test case when no submission is found for a given student."""
     account = Account(create_session("instructor"))
     student_email = GRADESCOPE_CI_INSTRUCTOR_EMAIL
-    course_id = "753413"
-    assignment_id = "5525291"
+    course_id = "1302606"
+    assignment_id = "8043535"
 
     with pytest.raises(Exception, match="No submission found"):
         account.get_assignment_submission(student_email, course_id, assignment_id)

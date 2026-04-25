@@ -83,7 +83,7 @@ def test_membership():
     # fetch instructor account
     account = get_account("instructor")
 
-    course_id = "753413"
+    course_id = "1302606"
 
     # get course members
     members = account.get_course_users(course_id)
