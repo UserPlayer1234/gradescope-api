@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-from gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
+from src.gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
 
 
 def get_auth_token_init_gradescope_session(

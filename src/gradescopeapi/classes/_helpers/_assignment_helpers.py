@@ -3,8 +3,8 @@ import json
 import dateutil.parser
 import requests
 
-from gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
-from gradescopeapi.classes.assignments import Assignment
+from src.gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
+from src.gradescopeapi.classes.assignments import Assignment
 
 
 class NotAuthorized(Exception):
