@@ -1,3 +1,5 @@
+import pytest
+
 from datetime import datetime, timedelta
 
 from gradescopeapi.classes.assignments import (
@@ -15,9 +17,9 @@ def test_valid_change_assignment(create_session):
     # create test session
     test_session = create_session("instructor")
 
-    course_id = "753413"
-    assignment_id = "4436170"
-    release_date = datetime(2024, 4, 15)
+    course_id = "1302606"
+    assignment_id = "8043535"
+    release_date = datetime(2026, 1, 1)
     due_date = release_date + timedelta(days=1)
     late_due_date = due_date + timedelta(days=1)
 
@@ -36,8 +38,8 @@ def test_boundary_date_assignment(create_session):
     """Test updating assignment with boundary date values."""
     test_session = create_session("instructor")
 
-    course_id = "753413"
-    assignment_id = "4436170"
+    course_id = "1302606"
+    assignment_id = "8043535"
     boundary_date = datetime(1900, 1, 1)  # Very old date
 
     result = update_assignment_date(
@@ -55,9 +57,9 @@ def test_update_assignment_date_invalid_session(create_session):
     """Test updating assignment with student session."""
     test_session = create_session("student")
 
-    course_id = "753413"
-    assignment_id = "4436170"
-    release_date = datetime(2024, 4, 15)
+    course_id = "1302606"
+    assignment_id = "8043535"
+    release_date = datetime(2026, 1, 1)
     due_date = release_date + timedelta(days=1)
     late_due_date = due_date + timedelta(days=1)
 
@@ -74,7 +76,7 @@ def test_update_assignment_date_invalid_session(create_session):
     except requests.exceptions.HTTPError as e:
         assert e.response.status_code == 401  # HTTP 401 Not Authorized
 
-
+@pytest.mark.skip(reason="Not using autograder")
 def test_autograder_valid_image_name(create_session):
     """Test updating assignment with valid image name."""
     test_session = create_session("instructor")
@@ -91,7 +93,7 @@ def test_autograder_valid_image_name(create_session):
     )
     assert result, "Failed to update autograder image name"
 
-
+@pytest.mark.skip(reason="Not using autograder")
 def test_autograder_invalid_image_name(create_session):
     """Test updating assignment with invalid image name."""
     test_session = create_session("instructor")
@@ -108,7 +110,7 @@ def test_autograder_invalid_image_name(create_session):
     )
     assert not result, "Incorrectly updated to invalid autograder image name"
 
-
+@pytest.mark.skip(reason="Not using autograder")
 def test_autograder_invalid_session(create_session):
     """Test updating assignment with student session."""
     test_session = create_session("student")
@@ -128,7 +130,7 @@ def test_autograder_invalid_session(create_session):
     except requests.exceptions.HTTPError as e:
         assert e.response.status_code == 401  # HTTP 401 Not Authorized
 
-
+@pytest.mark.skip(reason="Not using autograder")
 def test_autograder_invalid_assignment_type(create_session):
     """Test updating assignment with invalid assignment type."""
     test_session = create_session("instructor")
@@ -153,8 +155,8 @@ def test_update_assignment_title_valid_random_title(create_session):
     """Test updating assignment with random name."""
     test_session = create_session("instructor")
 
-    course_id = "753413"
-    assignment_id = "7332839"
+    course_id = "1302606"
+    assignment_id = "8043535"
     new_assignment_name = f"Test Rename - {uuid.uuid4()}"
 
     result = update_assignment_title(
@@ -170,8 +172,8 @@ def test_update_assignment_title_invalid_title_whitespace(create_session):
     """Test updating assignment with invalid name containing only whitespace."""
     test_session = create_session("instructor")
 
-    course_id = "753413"
-    assignment_id = "7193007"
+    course_id = "1302606"
+    assignment_id = "8043535"
     new_assignment_name = "  "  # whitespace only not allowed
 
     try:
@@ -190,8 +192,8 @@ def test_update_assignment_title_invalid_session(create_session):
     """Test updating assignment with student session."""
     test_session = create_session("student")
 
-    course_id = "753413"
-    assignment_id = "7332839"
+    course_id = "1302606"
+    assignment_id = "8043535"
     new_assignment_name = f"Test Rename - {uuid.uuid4()}"
 
     try:

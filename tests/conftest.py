@@ -17,7 +17,7 @@ GRADESCOPE_CI_TA_PASSWORD = os.getenv("GRADESCOPE_CI_TA_PASSWORD")
 GRADESCOPE_CI_INSTRUCTOR_EMAIL = os.getenv("GRADESCOPE_CI_INSTRUCTOR_EMAIL")
 GRADESCOPE_CI_INSTRUCTOR_PASSWORD = os.getenv("GRADESCOPE_CI_INSTRUCTOR_PASSWORD")
 
-
+print(GRADESCOPE_CI_INSTRUCTOR_PASSWORD)
 @pytest.fixture
 def create_session():
     def _create_session(account_type: str = "student") -> requests.Session:

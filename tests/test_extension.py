@@ -10,8 +10,8 @@ def test_get_extensions(create_session):
     # create test session
     test_session = create_session("instructor")
 
-    course_id = "753413"
-    assignment_id = "4330410"
+    course_id = "1302606"
+    assignment_id = "8043535"
 
     extensions = get_extensions(test_session, course_id, assignment_id)
     assert len(extensions) > 0, (
@@ -24,10 +24,10 @@ def test_valid_change_extension(create_session):
     # create test session
     test_session = create_session("instructor")
 
-    course_id = "753413"
-    assignment_id = "4330410"
-    user_id = "6515875"
-    release_date = datetime(2024, 4, 15)
+    course_id = "1302606"
+    assignment_id = "8043535"
+    user_id = "9629996"
+    release_date = datetime(2026, 1, 1)
     due_date = release_date + timedelta(days=1)
     late_due_date = due_date + timedelta(days=1)
 
@@ -48,10 +48,10 @@ def test_invalid_change_extension(create_session):
     # create test session
     test_session = create_session("instructor")
 
-    course_id = "753413"
-    assignment_id = "4330410"
-    user_id = "6515875"
-    release_date = datetime(2024, 4, 15)
+    course_id = "1302606"
+    assignment_id = "8043535"
+    user_id = "9629996"
+    release_date = datetime(2026, 1, 1)
     due_date = release_date + timedelta(days=-1)
     late_due_date = due_date + timedelta(days=-1)
 
@@ -74,8 +74,8 @@ def test_invalid_user_id(create_session):
     """Test granting an invalid extension for a student due to invalid user ID."""
     test_session = create_session("instructor")
 
-    course_id = "753413"
-    assignment_id = "4330410"
+    course_id = "1302606"
+    assignment_id = "8043535"
     invalid_user_id = "9999999"  # Assuming this is an invalid ID
 
     # Attempt to change the extension with an invalid user ID
@@ -96,7 +96,7 @@ def test_invalid_user_id(create_session):
 def test_invalid_assignment_id(create_session):
     """Test extension handling with an invalid assignment ID."""
     test_session = create_session("instructor")
-    course_id = "753413"
+    course_id = "1302606"
     invalid_assignment_id = "9999999"
 
     # Attempt to fetch extensions with an invalid assignment ID
@@ -111,4 +111,4 @@ def test_invalid_course_id(create_session):
 
     # Attempt to fetch or modify extensions with an invalid course ID
     with pytest.raises(RuntimeError, match="Failed to get extensions"):
-        get_extensions(test_session, invalid_course_id, "4330410")
+        get_extensions(test_session, invalid_course_id, "8043535")

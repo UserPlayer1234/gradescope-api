@@ -7,9 +7,9 @@ from gradescopeapi.classes.connection import GSConnection
 
 
 def test_add_or_edit_student_extension(create_connection):
-    course_id = "753413"
-    assignment_id = "4330410"
-    release_date = datetime(2024, 4, 15)
+    course_id = "1302606"
+    assignment_id = "8043535"
+    release_date = datetime(2026, 1, 1)
     due_date = release_date + timedelta(days=1)
     late_due_date = due_date + timedelta(days=1)
 
