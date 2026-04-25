@@ -18,6 +18,7 @@ from dataclasses import dataclass
 import dateutil.parser
 import requests
 from bs4 import BeautifulSoup
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
 
@@ -226,6 +227,62 @@ def update_student_extension(
 
 def remove_student_extension(
     session: requests.Session,
-    delete_path: str,
+    course_id: str,
+    assignment_id: str,
+    user_id: str,
+    gradescope_base_url: str = DEFAULT_GRADESCOPE_BASE_URL,
 ) -> bool:
-    raise NotImplementedError("Not implemented yet")
+    """Removes the extension for a student on an assignment.
+
+    If the user currently has an extension, this will remove their
+    current extension. If the user does not have an extension, this
+    will return a ValueError.
+
+    Args:
+        session (requests.Session): The session to use for the request
+        course_id (str): The ID of the course on Gradescope.
+        assignment_id (str): The ID of the assignment on Gradescope.
+        user_id (str): The ID of the user on Gradescope.
+
+    Returns:
+        bool: True if the extension was successfully deleted, False otherwise
+
+    Raises:
+        ValueError: If the user_id does not have an extension for the given assignment_id
+    """
+    # Get delete path
+    extensions_dict = get_extensions(
+        session, course_id, assignment_id, DEFAULT_GRADESCOPE_BASE_URL
+    )
+
+    try:
+        extension: Extension = extensions_dict[user_id]
+        delete_path: str = extension.delete_path
+    except Exception:
+        raise ValueError("No extension was found for the given user_id")
+
+    GS_EXTENSIONS_ENDPOINT = f"{gradescope_base_url}/courses/{course_id}/assignments/{assignment_id}/extensions"
+
+    # Get auth token
+    response = session.get(GS_EXTENSIONS_ENDPOINT)
+    soup = BeautifulSoup(response.text, "html.parser")
+    auth_token = soup.find("meta", {"name": "csrf-token"})["content"]
+
+    # Setup multipart form data
+    fields = [
+        ("authenticity_token", auth_token),
+        ("_method", "delete"),
+    ]
+
+    multipart = MultipartEncoder(fields=fields)
+
+    headers = {
+        "Content-Type": multipart.content_type,
+        "Referer": GS_EXTENSIONS_ENDPOINT,
+    }
+
+    response = session.post(
+        gradescope_base_url + delete_path, data=multipart, headers=headers
+    )
+
+    return response.status_code == 200
