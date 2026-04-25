@@ -3,9 +3,9 @@ import json
 from bs4 import BeautifulSoup
 import bs4
 
-from src.gradescopeapi.classes.courses import Course
-from src.gradescopeapi.classes.member import Member
-from src.gradescopeapi.classes.section import Section
+from gradescopeapi.classes.courses import Course
+from gradescopeapi.classes.member import Member
+from gradescopeapi.classes.section import Section
 
 
 def get_courses_info(soup: BeautifulSoup) -> dict[str, dict[str, Course]]:

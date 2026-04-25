@@ -8,7 +8,7 @@ import requests
 from bs4 import BeautifulSoup
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-from src.gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
+from gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
 
 
 def upload_assignment(

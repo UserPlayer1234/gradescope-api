@@ -1,12 +1,12 @@
 import requests
 
-from src.gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
-from src.gradescopeapi.classes._helpers._login_helpers import (
+from gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
+from gradescopeapi.classes._helpers._login_helpers import (
     get_auth_token_init_gradescope_session,
     login_set_session_cookies,
     logout_session,
 )
-from src.gradescopeapi.classes.account import Account
+from gradescopeapi.classes.account import Account
 
 
 class GSConnection:
