@@ -229,7 +229,7 @@ def remove_student_extension(
     session: requests.Session,
     course_id: str,
     assignment_id: str,
-    delete_path: str,
+    user_id: str,
     gradescope_base_url: str = DEFAULT_GRADESCOPE_BASE_URL,
 ) -> bool:
     """Removes the extension for a student on an assignment.
@@ -242,18 +242,24 @@ def remove_student_extension(
         session (requests.Session): The session to use for the request
         course_id (str): The ID of the course on Gradescope.
         assignment_id (str): The ID of the assignment on Gradescope.
-        delete_path (str): The delete path for the extension
+        user_id (str): The ID of the user on Gradescope.
 
     Returns:
         bool: True if the extension was successfully deleted, False otherwise
 
     Raises:
-        ValueError: If the delete_path is empty
+        ValueError: If the user_id does not have an extension for the given assignment_id
     """
+    # Get delete path
+    extensions_dict = get_extensions(
+        session, course_id, assignment_id, DEFAULT_GRADESCOPE_BASE_URL
+    )
 
-    # Check if the delete path is set
-    if delete_path is None or delete_path == "":
-        raise ValueError("The delete path cannot be empty")
+    try:
+        extension: Extension = extensions_dict[user_id]
+        delete_path: str = extension.delete_path
+    except Exception:
+        raise ValueError("No extension was found for the given user_id")
 
     GS_EXTENSIONS_ENDPOINT = f"{gradescope_base_url}/courses/{course_id}/assignments/{assignment_id}/extensions"
 
@@ -274,11 +280,9 @@ def remove_student_extension(
         "Content-Type": multipart.content_type,
         "Referer": GS_EXTENSIONS_ENDPOINT,
     }
-    try:
-        response = session.post(
-            gradescope_base_url + delete_path, data=multipart, headers=headers
-        )
-    except Exception:
-        raise ValueError("The delete path is invalid")
+
+    response = session.post(
+        gradescope_base_url + delete_path, data=multipart, headers=headers
+    )
 
     return response.status_code == 200

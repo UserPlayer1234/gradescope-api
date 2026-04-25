@@ -76,6 +76,7 @@ def test_update_assignment_date_invalid_session(create_session):
     except requests.exceptions.HTTPError as e:
         assert e.response.status_code == 401  # HTTP 401 Not Authorized
 
+
 @pytest.mark.skip(reason="Not using autograder")
 def test_autograder_valid_image_name(create_session):
     """Test updating assignment with valid image name."""
@@ -93,6 +94,7 @@ def test_autograder_valid_image_name(create_session):
     )
     assert result, "Failed to update autograder image name"
 
+
 @pytest.mark.skip(reason="Not using autograder")
 def test_autograder_invalid_image_name(create_session):
     """Test updating assignment with invalid image name."""
@@ -109,6 +111,7 @@ def test_autograder_invalid_image_name(create_session):
         image_name,
     )
     assert not result, "Incorrectly updated to invalid autograder image name"
+
 
 @pytest.mark.skip(reason="Not using autograder")
 def test_autograder_invalid_session(create_session):
@@ -129,6 +132,7 @@ def test_autograder_invalid_session(create_session):
         assert False, "Incorrectly updated assignment with invalid session"
     except requests.exceptions.HTTPError as e:
         assert e.response.status_code == 401  # HTTP 401 Not Authorized
+
 
 @pytest.mark.skip(reason="Not using autograder")
 def test_autograder_invalid_assignment_type(create_session):

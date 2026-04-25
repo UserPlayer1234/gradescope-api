@@ -14,6 +14,7 @@ GRADESCOPE_CI_STUDENT_PASSWORD = os.getenv("GRADESCOPE_CI_STUDENT_PASSWORD")
 GRADESCOPE_CI_INSTRUCTOR_EMAIL = os.getenv("GRADESCOPE_CI_INSTRUCTOR_EMAIL")
 GRADESCOPE_CI_INSTRUCTOR_PASSWORD = os.getenv("GRADESCOPE_CI_INSTRUCTOR_PASSWORD")
 
+
 @pytest.mark.skip(reason="Not testing file uploads")
 def new_session(account_type="student"):
     """Creates and returns a session for testing"""
@@ -32,6 +33,7 @@ def new_session(account_type="student"):
             raise ValueError("Invalid account type: must be 'student' or 'instructor'")
 
     return connection.session
+
 
 @pytest.mark.skip(reason="Not testing file uploads")
 def test_valid_upload():
@@ -58,6 +60,7 @@ def test_valid_upload():
 
     assert submission_link is not None
 
+
 @pytest.mark.skip(reason="Not testing file uploads")
 def test_invalid_upload():
     # create test session
@@ -81,6 +84,7 @@ def test_invalid_upload():
         )
 
     assert submission_link is None
+
 
 @pytest.mark.skip(reason="Not testing file uploads")
 def test_upload_with_no_files():
