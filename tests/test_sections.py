@@ -8,6 +8,7 @@ from gradescopeapi.classes.account import Account
 from gradescopeapi.classes.assignments import (
     update_assignment_date,
     update_assignment_by_sections,
+    Deadlines,
 )
 
 
@@ -64,16 +65,9 @@ def test_update_assignment_by_sections(create_session):
 
     assert result, "Failed to update section assignment due dates"
 
-    dates = []
     assignments = account.get_assignments(course_id)
     for assignment in assignments:
         if assignment.assignment_id == assignment_id:
-            dates = [
-                assignment.release_date,
-                assignment.due_date,
-                assignment.late_due_date,
-            ]
-
-    assert dates == [release_date, due_date, og_late_due_date], (
-        "Original assignment date was changed!"
-    )
+            assert assignment.deadlines == Deadlines(
+                release_date, due_date, og_late_due_date
+            ), "Original assignment date was changed!"

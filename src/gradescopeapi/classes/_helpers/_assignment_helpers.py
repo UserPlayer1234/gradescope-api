@@ -4,7 +4,7 @@ import dateutil.parser
 import requests
 
 from gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
-from gradescopeapi.classes.assignments import Assignment
+from gradescopeapi.classes.assignments import Assignment, Deadlines
 
 
 class NotAuthorized(Exception):
@@ -49,34 +49,32 @@ def get_assignments_instructor_view(coursepage_soup):
             if assignment.get("type", "") != "assignment":
                 continue
 
+            release_date = assignment["submission_window"]["release_date"]
+            due_date = assignment["submission_window"]["due_date"]
+            late_due_date = assignment["submission_window"].get("hard_due_date")
+
+            # convert to datetime objects
+            release_date = (
+                dateutil.parser.parse(release_date) if release_date else release_date
+            )
+
+            due_date = dateutil.parser.parse(due_date) if due_date else due_date
+
+            late_due_date = (
+                dateutil.parser.parse(late_due_date) if late_due_date else late_due_date
+            )
+
             assignment_obj = Assignment(
                 assignment_id=assignment["url"].split("/")[-1],
                 name=assignment["title"],
-                release_date=assignment["submission_window"]["release_date"],
-                due_date=assignment["submission_window"]["due_date"],
-                late_due_date=assignment["submission_window"].get("hard_due_date"),
+                deadlines=Deadlines(
+                    release_date=release_date,
+                    due_date=due_date,
+                    late_due_date=late_due_date,
+                ),
                 submissions_status=None,
                 grade=None,
                 max_grade=str(float(assignment["total_points"])),
-            )
-
-            # convert to datetime objects
-            assignment_obj.release_date = (
-                dateutil.parser.parse(assignment_obj.release_date)
-                if assignment_obj.release_date
-                else assignment_obj.release_date
-            )
-
-            assignment_obj.due_date = (
-                dateutil.parser.parse(assignment_obj.due_date)
-                if assignment_obj.due_date
-                else assignment_obj.due_date
-            )
-
-            assignment_obj.late_due_date = (
-                dateutil.parser.parse(assignment_obj.late_due_date)
-                if assignment_obj.late_due_date
-                else assignment_obj.late_due_date
             )
 
             # Add the assignment dictionary to the list
@@ -154,9 +152,11 @@ def get_assignments_student_view(coursepage_soup):
         assignment_obj = Assignment(
             assignment_id=assignment_id,
             name=name,
-            release_date=release_date,
-            due_date=due_date,
-            late_due_date=late_due_date,
+            deadlines=Deadlines(
+                release_date=release_date,
+                due_date=due_date,
+                late_due_date=late_due_date,
+            ),
             submissions_status=submission_status,
             grade=grade,
             max_grade=max_grade,

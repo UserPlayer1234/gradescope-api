@@ -21,12 +21,17 @@ class InvalidTitleName(AssignmentUpdateError):
 
 
 @dataclass
+class Deadlines:
+    release_date: datetime.datetime
+    due_date: datetime.datetime
+    late_due_date: datetime.datetime | None = None
+
+
+@dataclass
 class Assignment:
     assignment_id: str
     name: str
-    release_date: datetime.datetime
-    due_date: datetime.datetime
-    late_due_date: datetime.datetime
+    deadlines: Deadlines
     submissions_status: str
     grade: str
     max_grade: str
