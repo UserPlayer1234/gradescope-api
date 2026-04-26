@@ -1,5 +1,7 @@
 """Functions for modifying assignment details."""
 
+import json
+
 import datetime
 from dataclasses import dataclass
 
@@ -34,8 +36,8 @@ def update_assignment_date(
     session: requests.Session,
     course_id: str,
     assignment_id: str,
-    release_date: datetime.datetime | None = None,
-    due_date: datetime.datetime | None = None,
+    release_date: datetime.datetime,
+    due_date: datetime.datetime,
     late_due_date: datetime.datetime | None = None,
     gradescope_base_url: str = DEFAULT_GRADESCOPE_BASE_URL,
 ) -> bool:
@@ -45,25 +47,45 @@ def update_assignment_date(
         session (requests.Session): The session object for making HTTP requests.
         course_id (str): The ID of the course.
         assignment_id (str): The ID of the assignment.
-        release_date (datetime.datetime | None, optional): The release date of the assignment. Defaults to None.
-        due_date (datetime.datetime | None, optional): The due date of the assignment. Defaults to None.
+        release_date (datetime.datetime): The release date of the assignment.
+        due_date (datetime.datetime): The due date of the assignment.
         late_due_date (datetime.datetime | None, optional): The late due date of the assignment. Defaults to None.
+
+    Requirements:
+        release_date <= due_date <= late_due_date
 
     Notes:
         The timezone for dates used in Gradescope is specific to an institution. For example, for NYU, the timezone is America/New_York.
         For datetime objects passed to this function, the timezone should be set to the institution's timezone.
 
-    Raises if session does not have access to configure assignment.
+    Raises:
+        HTTPError: If session does not have access to configure assignment.
+        ValueError: If the release_date or due_date are not provided.
+        ValueError: If the dates are not in order.
 
     Returns:
         bool: True if the assignment dates were successfully updated, False otherwise.
     """
+
     GS_EDIT_ASSIGNMENT_ENDPOINT = (
         f"{gradescope_base_url}/courses/{course_id}/assignments/{assignment_id}/edit"
     )
     GS_POST_ASSIGNMENT_ENDPOINT = (
         f"{gradescope_base_url}/courses/{course_id}/assignments/{assignment_id}"
     )
+
+    # Check release and due date
+    if release_date is None or due_date is None:
+        raise ValueError("A release date and due date must be provided")
+
+    # Check if date requirements are met (in order)
+    dates = [
+        date for date in [release_date, due_date, late_due_date] if date is not None
+    ]
+    if dates != sorted(dates):
+        raise ValueError(
+            "Dates must be in order: release_date <= due_date <= late_due_date"
+        )
 
     # Get auth token
     response = session.get(GS_EDIT_ASSIGNMENT_ENDPOINT)
@@ -235,3 +257,103 @@ def update_autograder_image_name(
     return response.status_code == 200 and not soup.find(
         string="Docker image not found in your current course!"
     )
+
+
+def update_assignment_by_sections(
+    session: requests.Session,
+    course_id: str,
+    assignment_id: str,
+    sections: list[str],
+    visibility: bool,
+    release_date: datetime.datetime | None = None,
+    due_date: datetime.datetime | None = None,
+    late_due_date: datetime.datetime | None = None,
+    gradescope_base_url: str = DEFAULT_GRADESCOPE_BASE_URL,
+) -> bool:
+    """Update the dates of an assignment for a specific section on Gradescope.
+
+    Args:
+        session (requests.Session): The session object for making HTTP requests.
+        course_id (str): The ID of the course.
+        assignment_id (str): The ID of the assignment.
+        sections (list[str]): The list of section names.
+        visibility (bool): Whether the assignment is visible to the section.
+        release_date (datetime.datetime): The release date of the assignment.
+        due_date (datetime.datetime): The due date of the assignment.
+        late_due_date (datetime.datetime | None, optional): The late due date of the assignment. Defaults to None.
+
+    Requirements:
+        release_date <= due_date <= late_due_date
+
+    Notes:
+        The timezone for dates used in Gradescope is specific to an institution. For example, for NYU, the timezone is America/New_York.
+        For datetime objects passed to this function, the timezone should be set to the institution's timezone.
+
+    Raises:
+        HTTPError: If session does not have access to configure assignment.
+        ValueError: If the dates are not in order.
+
+    Returns:
+        bool: True if the assignment dates were successfully updated, False otherwise.
+    """
+
+    GS_EDIT_ASSIGNMENT_ENDPOINT = f"{gradescope_base_url}/courses/{course_id}/assignments/{assignment_id}/edit#section_management"
+    GS_POST_ASSIGNMENT_ENDPOINT = (
+        f"{gradescope_base_url}/courses/{course_id}/assignments/{assignment_id}"
+    )
+
+    # Check if date requirements are met (in order)
+    dates = [
+        date for date in [release_date, due_date, late_due_date] if date is not None
+    ]
+    if dates != sorted(dates):
+        raise ValueError(
+            "Dates must be in order: release_date <= due_date <= late_due_date"
+        )
+
+    # Get auth token
+    response = session.get(GS_EDIT_ASSIGNMENT_ENDPOINT)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+    auth_token = soup.select_one('input[name="authenticity_token"]')["value"]
+
+    # Format sections for update
+    sections_edits = {}
+    for section in sections:
+        sections_edits[section] = {
+            "visible": visibility,
+        }
+
+        # Adding dates only if they exist
+        if release_date:
+            sections_edits[section]["release_date"] = release_date.strftime(
+                "%Y-%m-%dT%H:%M"
+            )
+        if due_date:
+            sections_edits[section]["due_date"] = due_date.strftime("%Y-%m-%dT%H:%M")
+        if late_due_date:
+            sections_edits[section]["hard_due_date"] = late_due_date.strftime(
+                "%Y-%m-%dT%H:%M"
+            )
+
+    # Setup multipart form data
+    multipart = MultipartEncoder(
+        fields={
+            "utf8": "✓",
+            "_method": "patch",
+            "authenticity_token": auth_token,
+            "assignment[section_overrides]": json.dumps(sections_edits),
+            "commit": "Save",
+        }
+    )
+    headers = {
+        "Content-Type": multipart.content_type,
+        "Referer": GS_EDIT_ASSIGNMENT_ENDPOINT,
+    }
+
+    response = session.post(
+        GS_POST_ASSIGNMENT_ENDPOINT, data=multipart, headers=headers
+    )
+    response.raise_for_status()
+
+    return response.status_code == 200
