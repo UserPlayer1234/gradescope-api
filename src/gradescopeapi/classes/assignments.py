@@ -25,6 +25,7 @@ class Deadlines:
     release_date: datetime.datetime
     due_date: datetime.datetime
     late_due_date: datetime.datetime | None = None
+    visibility: bool = True
 
 
 @dataclass
@@ -35,6 +36,7 @@ class Assignment:
     submissions_status: str
     grade: str
     max_grade: str
+    sections: dict[str, Deadlines]
 
 
 def update_assignment_date(
@@ -264,7 +266,7 @@ def update_autograder_image_name(
     )
 
 
-def update_assignment_by_sections(
+def update_assignment_date_by_sections(
     session: requests.Session,
     course_id: str,
     assignment_id: str,
@@ -334,12 +336,18 @@ def update_assignment_by_sections(
             sections_edits[section]["release_date"] = release_date.strftime(
                 "%Y-%m-%dT%H:%M"
             )
+            # Ensures the courses page updates with correct release date
+            sections_edits[section]["release_date_type"] = "absolute"
         if due_date:
             sections_edits[section]["due_date"] = due_date.strftime("%Y-%m-%dT%H:%M")
+            # Ensures the courses page updates with correct due date
+            sections_edits[section]["due_date_type"] = "absolute"
         if late_due_date:
             sections_edits[section]["hard_due_date"] = late_due_date.strftime(
                 "%Y-%m-%dT%H:%M"
             )
+            # Ensures the courses page updates with correct late due date
+            sections_edits[section]["hard_due_date_type"] = "absolute"
 
     # Setup multipart form data
     multipart = MultipartEncoder(

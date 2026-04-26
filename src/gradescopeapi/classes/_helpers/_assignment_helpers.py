@@ -34,6 +34,7 @@ def check_page_auth(session, endpoint):
 
 def get_assignments_instructor_view(coursepage_soup):
     assignments_list = []
+    sections_dict = {}
     element_with_props = coursepage_soup.find(
         "div", {"data-react-class": "AssignmentsTable"}
     )
@@ -42,6 +43,43 @@ def get_assignments_instructor_view(coursepage_soup):
         props_str = element_with_props["data-react-props"]
         # Parse the JSON data
         assignment_json = json.loads(props_str)
+
+        # Extract information for each section
+        for assignment in assignment_json["table_data"]:
+            # Skip non-section data like assignments
+            if assignment.get("type", "") != "section":
+                continue
+
+            release_date = assignment["submission_window"]["release_date"]
+            due_date = assignment["submission_window"]["due_date"]
+            late_due_date = assignment["submission_window"].get("hard_due_date")
+            visibility = assignment["submission_window"]["visible"]
+
+            # convert to datetime objects
+            release_date = (
+                dateutil.parser.parse(release_date) if release_date else release_date
+            )
+
+            due_date = dateutil.parser.parse(due_date) if due_date else due_date
+
+            late_due_date = (
+                dateutil.parser.parse(late_due_date) if late_due_date else late_due_date
+            )
+
+            section_id = assignment["id"].split("_")[-1]
+            assignment_id = assignment["parent_id"].split("_")[-1]
+
+            # Create new dictionary of section deadlines for assignment
+            if not sections_dict.get(assignment_id):
+                sections_dict[assignment_id] = {}
+
+            # Add section deadline to assignment dictionary
+            sections_dict[assignment_id][section_id] = Deadlines(
+                release_date=release_date,
+                due_date=due_date,
+                late_due_date=late_due_date,
+                visibility=visibility,
+            )
 
         # Extract information for each assignment
         for assignment in assignment_json["table_data"]:
@@ -64,8 +102,10 @@ def get_assignments_instructor_view(coursepage_soup):
                 dateutil.parser.parse(late_due_date) if late_due_date else late_due_date
             )
 
+            assignment_id = assignment["url"].split("/")[-1]
+
             assignment_obj = Assignment(
-                assignment_id=assignment["url"].split("/")[-1],
+                assignment_id=assignment_id,
                 name=assignment["title"],
                 deadlines=Deadlines(
                     release_date=release_date,
@@ -75,6 +115,7 @@ def get_assignments_instructor_view(coursepage_soup):
                 submissions_status=None,
                 grade=None,
                 max_grade=str(float(assignment["total_points"])),
+                sections=sections_dict[assignment_id],
             )
 
             # Add the assignment dictionary to the list
@@ -160,6 +201,7 @@ def get_assignments_student_view(coursepage_soup):
             submissions_status=submission_status,
             grade=grade,
             max_grade=max_grade,
+            sections={},
         )
 
         # Append the dictionary to the list

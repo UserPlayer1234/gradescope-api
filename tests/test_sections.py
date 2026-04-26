@@ -7,7 +7,7 @@ from gradescopeapi.classes.account import Account
 
 from gradescopeapi.classes.assignments import (
     update_assignment_date,
-    update_assignment_by_sections,
+    update_assignment_date_by_sections,
     Deadlines,
 )
 
@@ -26,7 +26,7 @@ def test_get_sections(create_session):
     )
 
 
-def test_update_assignment_by_sections(create_session):
+def test_update_assignment_date_by_sections(create_session):
     """Test updating section due dates for an assignment."""
     # create account with test session
     test_session = create_session("instructor")
@@ -35,39 +35,65 @@ def test_update_assignment_by_sections(create_session):
     assignment_id = "8043535"
 
     # retrieve sections
-    sections = []
+    section_names = ["Section1"]
     sections_objects = account.get_sections(course_id)
-    for section_obj in sections_objects:
-        sections.append(section_obj.section_name)
+    # for section_obj in sections_objects:
+    # section_names.append(section_obj.section_name)
 
-    release_date = datetime(2026, 1, 1)
-    due_date = release_date + timedelta(days=1)
-    og_late_due_date = due_date + timedelta(days=1)
+    og_release_date = datetime(2026, 1, 1)
+    og_due_date = og_release_date + timedelta(days=1)
+    og_late_due_date = og_due_date + timedelta(days=1)
 
     result = update_assignment_date(
-        test_session, course_id, assignment_id, release_date, due_date, og_late_due_date
+        session=test_session,
+        course_id=course_id,
+        assignment_id=assignment_id,
+        release_date=og_release_date,
+        due_date=og_due_date,
+        late_due_date=og_late_due_date,
     )
 
-    assert result, "Failed to update assignment due dates"
+    assert result, "Failed to update assignment deadlines"
 
-    sec_late_due_date = due_date + timedelta(days=5)
+    sec_release_date = og_release_date + timedelta(days=10)
+    sec_due_date = sec_release_date + timedelta(days=1)
+    sec_late_due_date = sec_due_date + timedelta(days=1)
 
-    result = update_assignment_by_sections(
-        test_session,
-        course_id,
-        assignment_id,
-        sections,
-        True,
-        release_date,
-        due_date,
-        sec_late_due_date,
+    result = update_assignment_date_by_sections(
+        session=test_session,
+        course_id=course_id,
+        assignment_id=assignment_id,
+        sections=section_names,
+        visibility=True,
+        release_date=sec_release_date,
+        due_date=sec_due_date,
+        late_due_date=sec_late_due_date,
     )
 
-    assert result, "Failed to update section assignment due dates"
+    assert result, "Failed to update section assignment deadlines"
 
     assignments = account.get_assignments(course_id)
-    for assignment in assignments:
-        if assignment.assignment_id == assignment_id:
-            assert assignment.deadlines == Deadlines(
-                release_date, due_date, og_late_due_date
-            ), "Original assignment date was changed!"
+    assignment = next(
+        (
+            assignment
+            for assignment in assignments
+            if assignment.assignment_id == assignment_id
+        )
+    )
+
+    assert assignment.deadlines == Deadlines(
+        og_release_date, og_due_date, og_late_due_date
+    ), "Original assignment deadline was changed!"
+
+    section_obj = next(
+        (
+            section_obj
+            for section_obj in sections_objects
+            if section_obj.section_name == "Section1"
+        )
+    )
+    section_deadline = assignment.sections.get(section_obj.section_id)
+
+    assert section_deadline == Deadlines(
+        sec_release_date, sec_due_date, sec_late_due_date, True
+    ), "Section assignment deadline was not changed!"
