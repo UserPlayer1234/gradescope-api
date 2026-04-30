@@ -5,6 +5,7 @@ import bs4
 
 from gradescopeapi.classes.courses import Course
 from gradescopeapi.classes.member import Member
+from gradescopeapi.classes.section import Section
 
 
 def get_courses_info(soup: BeautifulSoup) -> dict[str, dict[str, Course]]:
@@ -36,9 +37,6 @@ def get_courses_info(soup: BeautifulSoup) -> dict[str, dict[str, Course]]:
 
     # initialize dictionary to store all courses
     all_courses = {"student": {}, "instructor": {}}
-
-    # find heading for courses
-    courses = soup.select_one("div#account-show")
 
     # use "Create Course" button to check if user is a staff user in any course
     button = soup.select_one("button.js-createNewCourse")
@@ -119,10 +117,6 @@ def get_course_members(soup: BeautifulSoup, course_id: str) -> list[Member]:
 
     # assumed ordering
     # name, email, role, sections?, submissions, edit, remove
-    # if course has sections, section column is added before number of submissions column
-    headers = soup.find("table", class_="js-rosterTable").find_all("th")
-    has_sections = any(h.text.startswith("Sections") for h in headers)
-    num_submissions_column = 4 if has_sections else 3
 
     member_list = []
 
@@ -169,7 +163,9 @@ def get_course_members(soup: BeautifulSoup, course_id: str) -> list[Member]:
             user_id = data_url.split("user_id=")[-1]
 
         # fetch number of submissions from table cell
-        num_submissions = int(cells[num_submissions_column].text)
+        num_submissions = int(
+            row.find("td", class_="u-centeredText").text
+        )  # TODO: check if this is correct
 
         # create Member object with all relevant info
         member_list.append(
@@ -188,3 +184,47 @@ def get_course_members(soup: BeautifulSoup, course_id: str) -> list[Member]:
         )
 
     return member_list
+
+
+def get_course_sections(soup: BeautifulSoup, course_id: str) -> list[Section]:
+    """
+    Scrape all course sections from the sections page of a Gradescope course.
+
+    Args:
+        soup (BeautifulSoup): BeautifulSoup object with parsed HTML.
+        course_id (str): The course ID to which the sections belong.
+
+    Returns:
+        List: A list of Section objects containing all course sections' info.
+
+        For example:
+        [
+            Section(...),
+            Section(...)
+        ]
+    """
+
+    sections_list = []
+
+    # loads json data of soup text
+    json_data_cs = json.loads(soup.text)
+
+    # fetch student ids and section names
+    student_ids_list = json_data_cs["student_ids_by_section_id"]
+    section_names_list = json_data_cs["section_name_by_section_id"]
+
+    # create Section object with all relevant info
+    for section_id in student_ids_list:
+        students = student_ids_list[section_id]
+        section_name = section_names_list[section_id]
+
+        sections_list.append(
+            Section(
+                section_name=section_name,
+                course_id=course_id,
+                section_id=section_id,
+                students=students,
+            )
+        )
+
+    return sections_list
