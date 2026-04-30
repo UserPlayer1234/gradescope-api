@@ -25,9 +25,9 @@ def test_get_sections(create_session):
     assert sections != {}, "Did not retrieve sections correctly"
 
     section_names = [section.section_name for section in sections]
-    assert section_names.__contains__("Section1") and section_names.__contains__("Section2"), (
-        "Did not retrieve correct section name"
-    )
+    assert section_names.__contains__("Section1") and section_names.__contains__(
+        "Section2"
+    ), "Did not retrieve correct section name"
 
 
 def test_update_assignment_date_by_sections(create_session):
@@ -250,7 +250,8 @@ def test_update_assignment_date_by_multiple_sections(create_session):
     section_one_deadline = updated_assignment.sections.get(section_one_obj.section_id)
 
     # check section one and two deadlines are the same
-    assert section_one_deadline == section_two_deadline and section_two_deadline == Deadlines(
-        sec2_release_date, sec2_due_date, sec2_late_due_date, True
+    assert (
+        section_one_deadline == section_two_deadline
+        and section_two_deadline
+        == Deadlines(sec2_release_date, sec2_due_date, sec2_late_due_date, True)
     ), "Both sections' assignment deadlines were not changed!"
-
