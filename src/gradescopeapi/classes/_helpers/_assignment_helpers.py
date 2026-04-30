@@ -104,6 +104,11 @@ def get_assignments_instructor_view(coursepage_soup):
 
             assignment_id = assignment["url"].split("/")[-1]
 
+            # Check if assignment has section management enabled
+            sections = {}
+            if sections_dict.get(assignment_id):
+                sections = sections_dict[assignment_id]
+
             assignment_obj = Assignment(
                 assignment_id=assignment_id,
                 name=assignment["title"],
@@ -115,7 +120,7 @@ def get_assignments_instructor_view(coursepage_soup):
                 submissions_status=None,
                 grade=None,
                 max_grade=str(float(assignment["total_points"])),
-                sections=sections_dict[assignment_id],
+                sections=sections,
             )
 
             # Add the assignment dictionary to the list
