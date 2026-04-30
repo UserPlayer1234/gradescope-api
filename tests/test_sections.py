@@ -1,11 +1,6 @@
-import pytest
-import os
-
 from datetime import datetime, timedelta
 
 from gradescopeapi.classes.account import Account
-
-from gradescopeapi.classes.connection import GSConnection
 
 from gradescopeapi.classes.assignments import (
     update_assignment_date,
