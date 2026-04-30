@@ -23,7 +23,9 @@ def test_get_sections(create_session):
     sections = account.get_sections(course_id)
 
     assert sections != {}, "Did not retrieve sections correctly"
-    assert sections[0].section_name == "Section1", (
+
+    section_names = [section.section_name for section in sections]
+    assert section_names.__contains__("Section1") and section_names.__contains__("Section2"), (
         "Did not retrieve correct section name"
     )
 
@@ -237,8 +239,15 @@ def test_update_assignment_date_by_multiple_sections(create_session):
     ), "Original assignment deadline was changed!"
 
     # update section one deadline variable
-    section_one_deadline = assignment.sections.get(section_one_obj.section_id)
-    # TODO: Updating deadlines should locally update Assignment objects
+    updated_assignments = account.get_assignments(course_id)
+    updated_assignment = next(
+        (
+            assignment
+            for assignment in updated_assignments
+            if assignment.assignment_id == assignment_id
+        )
+    )
+    section_one_deadline = updated_assignment.sections.get(section_one_obj.section_id)
 
     # check section one and two deadlines are the same
     assert section_one_deadline == section_two_deadline and section_two_deadline == Deadlines(
