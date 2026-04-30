@@ -12,11 +12,13 @@ from gradescopeapi.classes._helpers._assignment_helpers import (
 from gradescopeapi.classes._helpers._course_helpers import (
     get_course_members,
     get_courses_info,
+    get_course_sections,
 )
 from gradescopeapi.classes.assignments import Assignment
 from gradescopeapi.classes.member import Member
 from gradescopeapi.classes._helpers._assignment_helpers import NotAuthorized
 from gradescopeapi.classes.courses import Course
+from gradescopeapi.classes.section import Section
 
 
 class Account:
@@ -272,3 +274,35 @@ class Account:
             [grader.text for grader in graders if grader.text]
         )  # get non-empty grader names
         return grader_names
+
+    def get_sections(self, course_id: str) -> list[Section]:
+        """
+        Get a list of all sections in a course
+        Returns:
+            list: A list of sections in the course (Section objects)
+        Raises:
+            Exceptions:
+            "One or more invalid parameters": if course_id is null or empty value
+            "You must be logged in to access this page": if no user is logged in
+        """
+
+        section_endpoint = f"{self.gradescope_base_url}/courses/{course_id}/sections"
+
+        # check that course_id is valid (not empty)
+        if not course_id:
+            raise Exception("Invalid Course ID")
+
+        session = self.session
+
+        try:
+            # scrape page
+            section_resp = check_page_auth(session, section_endpoint)
+            section_soup = BeautifulSoup(section_resp.text, "html.parser")
+
+            # get all sections in the course
+            sections = get_course_sections(section_soup, course_id)
+
+            return sections
+        except Exception as e:
+            print(e)
+            return None
