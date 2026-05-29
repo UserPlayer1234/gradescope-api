@@ -3,6 +3,8 @@ import json
 import dateutil.parser
 import requests
 
+from bs4 import BeautifulSoup
+
 from gradescopeapi import DEFAULT_GRADESCOPE_BASE_URL
 from gradescopeapi.classes.assignments import Assignment, Deadlines
 
@@ -32,7 +34,7 @@ def check_page_auth(session, endpoint):
         return submissions_resp
 
 
-def get_assignments_instructor_view(coursepage_soup):
+def get_assignments_instructor_view(coursepage_soup: BeautifulSoup):
     assignments_list = []
     sections_dict = {}
     element_with_props = coursepage_soup.find(
@@ -102,6 +104,7 @@ def get_assignments_instructor_view(coursepage_soup):
                 dateutil.parser.parse(late_due_date) if late_due_date else late_due_date
             )
 
+            course_id = assignment["url"].split("/")[-3]
             assignment_id = assignment["url"].split("/")[-1]
 
             # Check if assignment has section management enabled
@@ -110,6 +113,7 @@ def get_assignments_instructor_view(coursepage_soup):
                 sections = sections_dict[assignment_id]
 
             assignment_obj = Assignment(
+                course_id=course_id,
                 assignment_id=assignment_id,
                 name=assignment["title"],
                 deadlines=Deadlines(
@@ -128,7 +132,11 @@ def get_assignments_instructor_view(coursepage_soup):
     return assignments_list
 
 
-def get_assignments_student_view(coursepage_soup):
+def get_assignments_student_view(coursepage_soup: BeautifulSoup):
+    # Extract course ID
+    course_id_header = coursepage_soup.find("div", class_="courseHeader--courseID")
+    course_id = course_id_header.text
+
     # parse into list of lists: Assignments[row_elements[]]
     assignment_table = []
     for assignment_row in coursepage_soup.find_all("tr", role="row")[
@@ -196,6 +204,7 @@ def get_assignments_student_view(coursepage_soup):
 
         # Store the extracted information in a dictionary
         assignment_obj = Assignment(
+            course_id=course_id,
             assignment_id=assignment_id,
             name=name,
             deadlines=Deadlines(

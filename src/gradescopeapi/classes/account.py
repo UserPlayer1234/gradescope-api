@@ -29,6 +29,9 @@ class Account:
     ):
         self.session = session
         self.gradescope_base_url = gradescope_base_url
+        self.courses: dict[str, dict[str, Course]] = {}
+        self.assignments: list[Assignment] = []
+        self.users: list[Member] = []
 
     def get_courses(self) -> dict[str, dict[str, Course]]:
         """
@@ -54,6 +57,10 @@ class Account:
             RuntimeError: If request to account page fails.
         """
 
+        # check if courses were already retrieved
+        if self.courses != {}:
+            return self.courses
+
         endpoint = f"{self.gradescope_base_url}/account"
 
         # get main page
@@ -67,7 +74,8 @@ class Account:
         soup = BeautifulSoup(response.text, "html.parser")
 
         # see if user is solely a student or instructor
-        return get_courses_info(soup)
+        self.courses = get_courses_info(soup)
+        return self.courses
 
     def get_course_users(self, course_id: str) -> list[Member]:
         """
@@ -79,14 +87,18 @@ class Account:
             "One or more invalid parameters": if course_id is null or empty value
             "You must be logged in to access this page.": if no user is logged in
         """
+        
+        # check that course_id is valid (not empty)
+        if not course_id:
+            raise Exception("Invalid Course ID")
+
+        # check if users were already retrieved
+        if self.users != []:
+            return self.users
 
         membership_endpoint = (
             f"{self.gradescope_base_url}/courses/{course_id}/memberships"
         )
-
-        # check that course_id is valid (not empty)
-        if not course_id:
-            raise Exception("Invalid Course ID")
 
         session = self.session
 
@@ -97,6 +109,8 @@ class Account:
 
             # get all users in the course
             users = get_course_members(membership_soup, course_id)
+
+            self.users = users
 
             return users
         except Exception:
@@ -118,6 +132,10 @@ class Account:
             raise Exception("Invalid Course ID")
         session = self.session
 
+        # check if assignments were already retrieved
+        if self.assignments != []:
+            return self.assignments
+
         # scrape page
         try:
             # this endpoint is only available if the user is a staff of the course
@@ -137,7 +155,37 @@ class Account:
         if not assignment_info_list:
             assignment_info_list = get_assignments_student_view(coursepage_soup)
 
+        self.assignments = assignment_info_list
+
         return assignment_info_list
+
+    def get_assignment(self, course_id: str, assignment_id: str) -> Assignment:
+        """
+        Get detailed information on a single assignment for a course
+        Returns:
+            Assignment: An Assignment object
+        Raises:
+            Exceptions:
+            "One or more invalid parameters": if course_id or assignment_id is null or empty value
+            "You are not authorized to access this page.": if logged in user is unable to access submissions
+            "You must be logged in to access this page.": if no user is logged in
+        """
+        # check that course_id is valid (not empty)
+        if not course_id:
+            raise Exception("Invalid Course ID")
+        session = self.session
+
+        # check if assignments were not retrieved
+        if self.assignments == []:
+            self.get_assignments(course_id=course_id)
+
+        assignment: Assignment = next(
+            (
+                assignment for assignment in self.assignments if assignment.assignment_id == assignment_id
+            )
+        )
+
+        return assignment
 
     def get_assignment_submissions(
         self, course_id: str, assignment_id: str
