@@ -1,5 +1,3 @@
-import pytest
-
 from gradescopeapi.classes.account import Account
 
 

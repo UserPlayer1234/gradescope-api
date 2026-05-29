@@ -87,7 +87,7 @@ class Account:
             "One or more invalid parameters": if course_id is null or empty value
             "You must be logged in to access this page.": if no user is logged in
         """
-        
+
         # check that course_id is valid (not empty)
         if not course_id:
             raise Exception("Invalid Course ID")
@@ -173,7 +173,6 @@ class Account:
         # check that course_id is valid (not empty)
         if not course_id:
             raise Exception("Invalid Course ID")
-        session = self.session
 
         # check if assignments were not retrieved
         if self.assignments == []:
@@ -181,7 +180,9 @@ class Account:
 
         assignment: Assignment = next(
             (
-                assignment for assignment in self.assignments if assignment.assignment_id == assignment_id
+                assignment
+                for assignment in self.assignments
+                if assignment.assignment_id == assignment_id
             )
         )
 

@@ -1,9 +1,7 @@
-import pytest
-
 from datetime import datetime, timedelta
 
 from gradescopeapi.classes.connection import GSConnection
-from gradescopeapi.classes.assignments import Assignment, Deadlines, InvalidTitleName
+from gradescopeapi.classes.assignments import Deadlines, InvalidTitleName
 
 import requests
 import uuid
@@ -47,7 +45,7 @@ def test_valid_change_assignment(create_connection):
 
     assert test_assignment.deadlines == Deadlines(
         release_date, due_date, late_due_date
-        ), "Assignment object deadlines not updated locally"
+    ), "Assignment object deadlines not updated locally"
 
 
 def test_boundary_date_assignment(create_connection):

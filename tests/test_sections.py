@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from gradescopeapi.classes.account import Account
 
-from gradescopeapi.classes.assignments import Assignment, Deadlines
+from gradescopeapi.classes.assignments import Deadlines
 
 
 def test_get_sections(create_session):
@@ -103,7 +103,7 @@ def test_update_assignment_date_by_multiple_sections(create_session):
     # create account with test session
     test_session = create_session("instructor")
     account = Account(test_session)
-    
+
     course_id = "1302606"
     assignment_id = "8043535"
 

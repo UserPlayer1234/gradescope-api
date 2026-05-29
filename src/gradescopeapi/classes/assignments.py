@@ -47,7 +47,7 @@ class Assignment:
         late_due_date: datetime.datetime | None = None,
         gradescope_base_url: str = DEFAULT_GRADESCOPE_BASE_URL,
     ) -> bool:
-        """Update the dates of an assignment on Gradescope. 
+        """Update the dates of an assignment on Gradescope.
         Saves deadline under self.deadlines attribute as a Deadlines object.
 
         Args:
@@ -72,12 +72,8 @@ class Assignment:
             bool: True if the assignment dates were successfully updated, False otherwise.
         """
 
-        GS_EDIT_ASSIGNMENT_ENDPOINT = (
-            f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}/edit"
-        )
-        GS_POST_ASSIGNMENT_ENDPOINT = (
-            f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}"
-        )
+        GS_EDIT_ASSIGNMENT_ENDPOINT = f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}/edit"
+        GS_POST_ASSIGNMENT_ENDPOINT = f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}"
 
         # Check release and due date
         if release_date is None or due_date is None:
@@ -130,12 +126,13 @@ class Assignment:
         # Check response status and update deadline locally
         if response.status_code == 200:
             self.deadlines = Deadlines(
-                release_date=release_date, due_date=due_date, late_due_date=late_due_date
-                )
+                release_date=release_date,
+                due_date=due_date,
+                late_due_date=late_due_date,
+            )
             return True
         else:
             return False
-
 
     def update_assignment_title(
         self,
@@ -157,12 +154,8 @@ class Assignment:
         Returns:
             bool: True if the assignment dates were successfully updated, False otherwise.
         """
-        GS_EDIT_ASSIGNMENT_ENDPOINT = (
-            f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}/edit"
-        )
-        GS_POST_ASSIGNMENT_ENDPOINT = (
-            f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}"
-        )
+        GS_EDIT_ASSIGNMENT_ENDPOINT = f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}/edit"
+        GS_POST_ASSIGNMENT_ENDPOINT = f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}"
 
         # Get auth token
         response = session.get(GS_EDIT_ASSIGNMENT_ENDPOINT)
@@ -194,14 +187,15 @@ class Assignment:
         error = soup.select_one(".form--requiredFieldStar.error")
         if error is not None:
             if error.parent is not None and error.parent.text.startswith("Title"):
-                raise InvalidTitleName(f"Assignment title '{assignment_name}' is invalid")
+                raise InvalidTitleName(
+                    f"Assignment title '{assignment_name}' is invalid"
+                )
             else:
                 raise AssignmentUpdateError(
                     "Unknown error occurred trying to update assignment title"
                 )
 
         return response.status_code == 200
-
 
     def update_autograder_image_name(
         self,
@@ -229,9 +223,7 @@ class Assignment:
             bool: True if the image name was successfully updated, False otherwise.
         """
         GS_EDIT_AUTOGRADER_ASSIGNMENT_ENDPOINT = f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}/configure_autograder"
-        GS_POST_ASSIGNMENT_ENDPOINT = (
-            f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}"
-        )
+        GS_POST_ASSIGNMENT_ENDPOINT = f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}"
 
         # Get auth token
         response = session.get(GS_EDIT_AUTOGRADER_ASSIGNMENT_ENDPOINT)
@@ -264,7 +256,6 @@ class Assignment:
             string="Docker image not found in your current course!"
         )
 
-
     def update_assignment_date_by_sections(
         self,
         session: requests.Session,
@@ -275,7 +266,7 @@ class Assignment:
         late_due_date: datetime.datetime | None = None,
         gradescope_base_url: str = DEFAULT_GRADESCOPE_BASE_URL,
     ) -> bool:
-        """Update the dates of an assignment for a specific section on Gradescope. 
+        """Update the dates of an assignment for a specific section on Gradescope.
         Saves section deadlines under self.sections attribute as a dictionary of section names mapped to Deadlines.
 
         Args:
@@ -302,9 +293,7 @@ class Assignment:
         """
 
         GS_EDIT_ASSIGNMENT_ENDPOINT = f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}/edit#section_management"
-        GS_POST_ASSIGNMENT_ENDPOINT = (
-            f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}"
-        )
+        GS_POST_ASSIGNMENT_ENDPOINT = f"{gradescope_base_url}/courses/{self.course_id}/assignments/{self.assignment_id}"
 
         # Check if date requirements are met (in order)
         dates = [
@@ -336,7 +325,9 @@ class Assignment:
                 # Ensures the courses page updates with correct release date
                 sections_edits[section]["release_date_type"] = "absolute"
             if due_date:
-                sections_edits[section]["due_date"] = due_date.strftime("%Y-%m-%dT%H:%M")
+                sections_edits[section]["due_date"] = due_date.strftime(
+                    "%Y-%m-%dT%H:%M"
+                )
                 # Ensures the courses page updates with correct due date
                 sections_edits[section]["due_date_type"] = "absolute"
             if late_due_date:
@@ -370,7 +361,10 @@ class Assignment:
         if response.status_code == 200:
             for section in sections:
                 self.sections[section] = Deadlines(
-                    release_date=release_date, due_date=due_date, late_due_date=late_due_date, visibility=visibility
+                    release_date=release_date,
+                    due_date=due_date,
+                    late_due_date=late_due_date,
+                    visibility=visibility,
                 )
             return True
         else:
