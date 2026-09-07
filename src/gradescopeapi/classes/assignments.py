@@ -20,21 +20,46 @@ class InvalidTitleName(AssignmentUpdateError):
     pass
 
 
-@dataclass
 class Deadlines:
-    release_date: datetime.datetime
-    due_date: datetime.datetime
-    late_due_date: datetime.datetime | None = None
-    visibility: bool = True
+    def __init__(
+            self, 
+            release_date: datetime, 
+            due_date: datetime, 
+            late_due_date: datetime | None = None, 
+            visibility: bool = True):
+        dates = [
+            date for date in [release_date, due_date, late_due_date] if date is not None
+        ]
+        if dates != sorted(dates):
+            raise ValueError(
+                "Dates must be in order: release_date <= due_date <= late_due_date"
+            )
+        self.release_date = release_date
+        self.due_date = due_date
+        self.late_due_date = late_due_date
 
-    def __add__(self, other):
+    def __add__(self, other) -> Deadlines:
         if isinstance(other, timedelta):
             self.release_date += other
             self.due_date += other
-            self.late_due_date += other
+            if self.late_due_date:
+                self.late_due_date += other
             return self
         else:
             raise ValueError(f'Cannot add Deadline object to type {type(other)}')
+
+    def cut_off_date(self, date: datetime):
+        """Sets all dates in the Deadlines object to the given date if it is greater.
+        
+        Args:
+            date (datetime): The cutoff date for the deadlines.
+        """
+
+        self.release_date = min(self.release_date, date)
+        self.due_date = min(self.due_date, date)
+
+        if self.late_due_date:
+            self.late_due_date = min(self.late_due_date, date)
 
 
 @dataclass
@@ -51,9 +76,9 @@ class Assignment:
     def update_assignment_date(
         self,
         session: requests.Session,
-        release_date: datetime.datetime,
-        due_date: datetime.datetime,
-        late_due_date: datetime.datetime | None = None,
+        release_date: datetime,
+        due_date: datetime,
+        late_due_date: datetime | None = None,
         gradescope_base_url: str = DEFAULT_GRADESCOPE_BASE_URL,
     ) -> bool:
         """Update the dates of an assignment on Gradescope.
@@ -61,9 +86,9 @@ class Assignment:
 
         Args:
             session (requests.Session): The session object for making HTTP requests.
-            release_date (datetime.datetime): The release date of the assignment.
-            due_date (datetime.datetime): The due date of the assignment.
-            late_due_date (datetime.datetime | None, optional): The late due date of the assignment. Defaults to None.
+            release_date (datetime): The release date of the assignment.
+            due_date (datetime): The due date of the assignment.
+            late_due_date (datetime | None, optional): The late due date of the assignment. Defaults to None.
 
         Requirements:
             release_date <= due_date <= late_due_date
@@ -270,9 +295,9 @@ class Assignment:
         session: requests.Session,
         sections: list[str],
         visibility: bool,
-        release_date: datetime.datetime | None = None,
-        due_date: datetime.datetime | None = None,
-        late_due_date: datetime.datetime | None = None,
+        release_date: datetime | None = None,
+        due_date: datetime | None = None,
+        late_due_date: datetime | None = None,
         gradescope_base_url: str = DEFAULT_GRADESCOPE_BASE_URL,
     ) -> bool:
         """Update the dates of an assignment for a specific section on Gradescope.
@@ -282,9 +307,9 @@ class Assignment:
             session (requests.Session): The session object for making HTTP requests.
             sections (list[str]): The list of section names.
             visibility (bool): Whether the assignment is visible to the section.
-            release_date (datetime.datetime | None, optional): The release date of the assignment. Defaults to None.
-            due_date (datetime.datetime | None, optional): The due date of the assignment. Defaults to None.
-            late_due_date (datetime.datetime | None, optional): The late due date of the assignment. Defaults to None.
+            release_date (datetime | None, optional): The release date of the assignment. Defaults to None.
+            due_date (datetime | None, optional): The due date of the assignment. Defaults to None.
+            late_due_date (datetime | None, optional): The late due date of the assignment. Defaults to None.
 
         Requirements:
             release_date <= due_date <= late_due_date
