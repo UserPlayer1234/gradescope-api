@@ -2,11 +2,7 @@ from datetime import datetime, timedelta
 
 from gradescopeapi.classes.account import Account
 
-from gradescopeapi.classes.assignments import (
-    update_assignment_date,
-    update_assignment_date_by_sections,
-    Deadlines,
-)
+from gradescopeapi.classes.assignments import Deadlines
 
 
 def test_get_sections(create_session):
@@ -30,8 +26,12 @@ def test_update_assignment_date_by_sections(create_session):
     # create account with test session
     test_session = create_session("instructor")
     account = Account(test_session)
+
     course_id = "1302606"
     assignment_id = "8043535"
+
+    # retrieve assignment
+    assignment = account.get_assignment(course_id, assignment_id)
 
     # retrieve sections
     sections_objects = account.get_sections(course_id)
@@ -42,10 +42,8 @@ def test_update_assignment_date_by_sections(create_session):
     og_due_date = og_release_date + timedelta(days=1)
     og_late_due_date = og_due_date + timedelta(days=1)
 
-    result = update_assignment_date(
+    result = assignment.update_assignment_date(
         session=test_session,
-        course_id=course_id,
-        assignment_id=assignment_id,
         release_date=og_release_date,
         due_date=og_due_date,
         late_due_date=og_late_due_date,
@@ -58,10 +56,8 @@ def test_update_assignment_date_by_sections(create_session):
     sec_due_date = sec_release_date + timedelta(days=1)
     sec_late_due_date = sec_due_date + timedelta(days=1)
 
-    result = update_assignment_date_by_sections(
+    result = assignment.update_assignment_date_by_sections(
         session=test_session,
-        course_id=course_id,
-        assignment_id=assignment_id,
         sections=section_names,
         visibility=True,
         release_date=sec_release_date,
@@ -94,7 +90,7 @@ def test_update_assignment_date_by_sections(create_session):
             if section_obj.section_name == "Section1"
         )
     )
-    section_deadline = assignment.sections.get(section_obj.section_id)
+    section_deadline = assignment.sections.get(section_obj.section_name)
 
     # check section deadline was changed
     assert section_deadline == Deadlines(
@@ -107,8 +103,12 @@ def test_update_assignment_date_by_multiple_sections(create_session):
     # create account with test session
     test_session = create_session("instructor")
     account = Account(test_session)
+
     course_id = "1302606"
     assignment_id = "8043535"
+
+    # retrieve assignment
+    assignment = account.get_assignment(course_id, assignment_id)
 
     # retrieve sections
     sections_objects = account.get_sections(course_id)
@@ -120,10 +120,8 @@ def test_update_assignment_date_by_multiple_sections(create_session):
     og_due_date = og_release_date + timedelta(days=1)
     og_late_due_date = og_due_date + timedelta(days=1)
 
-    result = update_assignment_date(
+    result = assignment.update_assignment_date(
         session=test_session,
-        course_id=course_id,
-        assignment_id=assignment_id,
         release_date=og_release_date,
         due_date=og_due_date,
         late_due_date=og_late_due_date,
@@ -136,10 +134,8 @@ def test_update_assignment_date_by_multiple_sections(create_session):
     sec1_due_date = sec1_release_date + timedelta(days=1)
     sec1_late_due_date = sec1_due_date + timedelta(days=1)
 
-    result = update_assignment_date_by_sections(
+    result = assignment.update_assignment_date_by_sections(
         session=test_session,
-        course_id=course_id,
-        assignment_id=assignment_id,
         sections=section_one,
         visibility=True,
         release_date=sec1_release_date,
@@ -154,10 +150,8 @@ def test_update_assignment_date_by_multiple_sections(create_session):
     sec2_due_date = sec2_release_date + timedelta(days=1)
     sec2_late_due_date = sec2_due_date + timedelta(days=1)
 
-    result = update_assignment_date_by_sections(
+    result = assignment.update_assignment_date_by_sections(
         session=test_session,
-        course_id=course_id,
-        assignment_id=assignment_id,
         sections=section_two,
         visibility=True,
         release_date=sec2_release_date,
@@ -190,7 +184,7 @@ def test_update_assignment_date_by_multiple_sections(create_session):
             if section_obj.section_name == "Section1"
         )
     )
-    section_one_deadline = assignment.sections.get(section_one_obj.section_id)
+    section_one_deadline = assignment.sections.get(section_one_obj.section_name)
 
     # check section one deadline was changed
     assert section_one_deadline == Deadlines(
@@ -205,7 +199,7 @@ def test_update_assignment_date_by_multiple_sections(create_session):
             if section_obj.section_name == "Section2"
         )
     )
-    section_two_deadline = assignment.sections.get(section_two_obj.section_id)
+    section_two_deadline = assignment.sections.get(section_two_obj.section_name)
 
     # check section two deadline was changed
     assert section_two_deadline == Deadlines(
@@ -215,10 +209,8 @@ def test_update_assignment_date_by_multiple_sections(create_session):
     # update section one and two to have section two deadline
     sections = ["Section1", "Section2"]
 
-    result = update_assignment_date_by_sections(
+    result = assignment.update_assignment_date_by_sections(
         session=test_session,
-        course_id=course_id,
-        assignment_id=assignment_id,
         sections=sections,
         visibility=True,
         release_date=sec2_release_date,
@@ -242,7 +234,7 @@ def test_update_assignment_date_by_multiple_sections(create_session):
             if assignment.assignment_id == assignment_id
         )
     )
-    section_one_deadline = updated_assignment.sections.get(section_one_obj.section_id)
+    section_one_deadline = updated_assignment.sections.get(section_one_obj.section_name)
 
     # check section one and two deadlines are the same
     assert (
