@@ -2,7 +2,7 @@
 
 import json
 
-import datetime
+from datetime import datetime, timedelta
 from dataclasses import dataclass
 
 import requests
@@ -26,6 +26,15 @@ class Deadlines:
     due_date: datetime.datetime
     late_due_date: datetime.datetime | None = None
     visibility: bool = True
+
+    def __add__(self, other):
+        if isinstance(other, timedelta):
+            self.release_date += other
+            self.due_date += other
+            self.late_due_date += other
+            return self
+        else:
+            raise ValueError(f'Cannot add Deadline object to type {type(other)}')
 
 
 @dataclass

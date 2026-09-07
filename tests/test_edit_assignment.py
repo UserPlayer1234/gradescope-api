@@ -7,10 +7,24 @@ from gradescopeapi.classes.assignments import (
     update_assignment_title,
     update_autograder_image_name,
     InvalidTitleName,
+    Deadlines,
 )
 import requests
 import uuid
 
+
+def test_deadline_addition():
+    deadlines = Deadlines(
+        release_date=datetime(2001, 1, 1),
+        due_date=datetime(2001, 1, 2),
+        late_due_date=datetime(2001, 1, 3),
+        visibility=True,
+    )
+    deadlines: Deadlines = deadlines + timedelta(days=1)
+
+    assert deadlines.release_date == datetime(2001, 1, 2)
+    assert deadlines.due_date == datetime(2001, 1, 3)
+    assert deadlines.late_due_date == datetime(2001, 1, 4)
 
 def test_valid_change_assignment(create_session):
     """Test valid extension for a student."""
