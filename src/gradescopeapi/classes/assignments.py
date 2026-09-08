@@ -43,11 +43,12 @@ class Deadlines:
 
     def __add__(self, other) -> Deadlines:
         if isinstance(other, timedelta):
-            self.release_date += other
-            self.due_date += other
+            release_date = self.release_date + other
+            due_date = self.due_date + other
+            late_due_date = None
             if self.late_due_date:
-                self.late_due_date += other
-            return self
+                late_due_date = self.late_due_date + other
+            return Deadlines(release_date, due_date, late_due_date, self.visibility)
         else:
             raise ValueError(f'Cannot add Deadline object to type {type(other)}')
 

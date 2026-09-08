@@ -37,6 +37,17 @@ def test_deadline_addition():
     assert deadlines.due_date == datetime(2001, 1, 3)
     assert deadlines.late_due_date == datetime(2001, 1, 4)
 
+    # Testing new deadlines object from result
+    deadlines2 = deadlines + timedelta(days=1)
+
+    assert deadlines.release_date == datetime(2001, 1, 2)
+    assert deadlines.due_date == datetime(2001, 1, 3)
+    assert deadlines.late_due_date == datetime(2001, 1, 4)
+
+    assert deadlines2.release_date == datetime(2001, 1, 3)
+    assert deadlines2.due_date == datetime(2001, 1, 4)
+    assert deadlines2.late_due_date == datetime(2001, 1, 5)
+
     # Testing on deadlines w/o late due date
     deadlines = Deadlines(
         release_date=datetime(2001, 1, 1),
