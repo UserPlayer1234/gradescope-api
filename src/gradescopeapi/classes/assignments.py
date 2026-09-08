@@ -61,6 +61,9 @@ class Deadlines:
         else:
             return False
 
+    def __repr__(self):
+        return f'{self.release_date}, {self.due_date}, {self.late_due_date}'
+
     def cut_off_date(self, date: datetime):
         """Sets all dates in the Deadlines object to the given date if it is greater.
         
