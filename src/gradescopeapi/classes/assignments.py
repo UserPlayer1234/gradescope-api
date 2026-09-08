@@ -22,11 +22,12 @@ class InvalidTitleName(AssignmentUpdateError):
 
 class Deadlines:
     def __init__(
-            self, 
-            release_date: datetime, 
-            due_date: datetime, 
-            late_due_date: datetime | None = None, 
-            visibility: bool = True):
+        self, 
+        release_date: datetime, 
+        due_date: datetime, 
+        late_due_date: datetime | None = None, 
+        visibility: bool = True):
+        
         dates = [
             date for date in [release_date, due_date, late_due_date] if date is not None
         ]
@@ -34,9 +35,11 @@ class Deadlines:
             raise ValueError(
                 "Dates must be in order: release_date <= due_date <= late_due_date"
             )
+        
         self.release_date = release_date
         self.due_date = due_date
         self.late_due_date = late_due_date
+        self.visibility = visibility
 
     def __add__(self, other) -> Deadlines:
         if isinstance(other, timedelta):
@@ -47,6 +50,15 @@ class Deadlines:
             return self
         else:
             raise ValueError(f'Cannot add Deadline object to type {type(other)}')
+
+    def __eq__(self, value):
+        if isinstance(value, Deadlines):
+            if self.release_date == value.release_date and self.due_date == value.due_date and self.late_due_date == self.late_due_date:
+                return True
+            else:
+                return False
+        else:
+            return False
 
     def cut_off_date(self, date: datetime):
         """Sets all dates in the Deadlines object to the given date if it is greater.
